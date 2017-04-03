@@ -1,5 +1,3 @@
-#pragma once
-
 #include <utility>
 #include <list>
 #include <vector>
@@ -20,16 +18,16 @@ public:
 	Data remove(size_t);
 
 	/// get Data by key
-	Data get(size_t);
+	Data get(size_t) const;
 private:
-	/// get a Node by key
-	std::pair<size_t, Data> get_node(size_t);
-
 	/// store the data
-	std::vector<std::list<std::pair<size_t, Data> > > data;
+	std::vector<std::list<std::pair<size_t, Data> > > table;
+
+	/// get a Node by key
+	std::pair<size_t, Data> get_node(size_t) const;
 
 	/// hash by key
-	size_t hash(size_t);
+	size_t hash(size_t) const;
 };
 
 
@@ -41,7 +39,7 @@ Hashtable<Data>::Hashtable(size_t num_buckets)
 	for (size_t i = 0; i < num_buckets; ++i)
 	{
 		std::list<std::pair<size_t, Data> > list;
-		data.push_back(list);
+		table.push_back(list);
 	}
 }
 
@@ -50,47 +48,47 @@ inline bool Hashtable<Data>::insert(size_t key, Data d)
 {
 	std::pair<size_t, Data> n(key, d);
 	size_t idx = hash(key);
-	for (std::pair<size_t, Data> node : data[idx])
+	for (std::pair<size_t, Data> node : table[idx])
 	{
 		if (node.first == key)
 		{
 			return false; //key already exists
 		}
 	}
-	data[idx].push_back(n);
+	table[idx].push_back(n);
 	return true;
 }
 
 template<typename Data>
-inline std::pair<size_t, Data> Hashtable<Data>::get_node(size_t key)
+inline std::pair<size_t, Data> Hashtable<Data>::get_node(size_t key) const
 {
-	for (std::pair<size_t, Data> node : data[hash(key)])
+	for (std::pair<size_t, Data> node : table[hash(key)])
 	{
 		if (node.first == key)
 		{
 			return node;
 		}
 	}
-	throw std::runtime_error("key not in Hashtable");
+	throw std::out_of_range("key not in Hashtable");
 }
 
 template<typename Data>
-inline size_t Hashtable<Data>::hash(size_t key)
+inline size_t Hashtable<Data>::hash(size_t key) const
 {
 	std::hash<size_t> hash_fn;
-	return hash_fn(key) % data.size();
+	return hash_fn(key) % table.size();
 }
 
 template <typename Data>
 inline Data Hashtable<Data>::remove(size_t key)
 {
 	std::pair<size_t, Data> n = get_node(key);
-	data[hash(key)].remove(n);
+	table[hash(key)].remove(n);
 	return n.second;
 }
 
 template<typename Data>
-inline Data Hashtable<Data>::get(size_t key)
+inline Data Hashtable<Data>::get(size_t key) const
 {
 	return get_node(key).second;
 }
